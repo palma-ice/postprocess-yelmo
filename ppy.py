@@ -83,6 +83,12 @@ def load_variables(instance, input_varlist):
         instance.sim_full[path][var] = f[var].copy()
   f.close()
 
+def remove_variables(instance, input_varlist):
+  for var_name in input_varlist:
+    for path in instance.list_nc:
+      del instance.sim_full[path][var_name]
+    instance.varlist.remove(var_name)
+
 def inherit_plot_spec(instance, nrw, ncl, plot_size, hl_lw):
   instance.nrw = nrw
   instance.ncl = ncl
@@ -290,7 +296,7 @@ class postpro_data2D:
     obligatory_var = ["H_ice", "uxy_s", "H_ice_pd_err", "uxy_s_pd_err", "f_ice", "mask_bed"]
     load_variables(self, obligatory_var)
 
-    mask_path = "/Data/ANT-32KM_REGIONS.nc"
+    mask_path = "data/ANT-32KM_REGIONS.nc"
     with xr.open_dataset(mask_path) as f:
       self.region_mask = f["mask_regions"].copy()
     f.close()
@@ -345,7 +351,7 @@ class postpro_data2D:
   def extract_grline(self):
     # Get the mask and the space variables from reference observational data.
     
-    path = "/Data/ANT-32KM_TOPO-BedMachine.nc"
+    path = "data/ANT-32KM_TOPO-BedMachine.nc"
     with xr.open_dataset(path) as f:
       self.mask = f["mask"].copy()
       self.X, self.Y = f["x2D"].copy(), f["y2D"].copy()

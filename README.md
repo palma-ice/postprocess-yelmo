@@ -23,3 +23,9 @@ PPY relies on standard python libraries. A .yml-environment is provided in the g
 # Before Getting Started
 
 PPY relies on some .nc files, typical of the studied domain. For instance, in the case of Antarctica, the present-day state as well as a mask of the regions need to be provided. The very first step before getting started is to make sure you have the required files and have set the paths to it correctly (illustrated in *ppy_demo.ipynb*)
+
+# Upcoming features
+
+1. Handle ensembles (read the .txt files mentioning the parameter combinations and create corresponding sliders/dropdowns).
+1. User-defined masks (instead of selecting between pre-defined regions, allow user to "draw" region of interest).
+1. Improved interactivity (e.g. select folder interactively, choose variables to be plotted from dropdown).
