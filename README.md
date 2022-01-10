@@ -23,5 +23,9 @@ As the features of PPY are best understood on a practical example, a jupyter not
 # Upcoming features
 
 1. Handle ensembles (read the .txt files mentioning the parameter combinations and create corresponding sliders/dropdowns).
-1. User-defined masks (instead of selecting between pre-defined regions, allow user to "draw" region of interest).
+1. Make PPY suited for arbitrary ice sheet (essentially Greenland and Laurentide).
 1. Improved interactivity (e.g. select folder interactively, choose variables to be plotted from dropdown).
+
+# Colormaps
+
+Colormaps are of great importance when it comes to generating plots for publications. Some user-defined maps are already implemented in ppy_colormaps. Any colormaps you create for your own publication is a welcomed contribution to ppy.

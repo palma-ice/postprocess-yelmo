@@ -132,6 +132,12 @@ def handle_axis(instance, i1, i2):
   else: cur_ax = instance.axs[i1,i2]
   return cur_ax
 
+def plot_mask(mask, flip=True):
+  fig, ax = plt.subplots(1, 1, figsize=(6,6))
+  ax.imshow(mask)
+  if flip: ax.invert_yaxis()
+  plt.show(fig)
+
 def get_mask(instance2D, mask_ix=[2,3,4,5], visualise=False):
 
   mask = np.zeros([instance2D.nx, instance2D.ny])       # Initialise an integer mask.
@@ -139,10 +145,48 @@ def get_mask(instance2D, mask_ix=[2,3,4,5], visualise=False):
     mask += (instance2D.region_mask == ix).astype(int)  # Set desired regions to 1.
   mask = np.array(mask)
   if visualise:
-    fig, ax = plt.subplots(1, 1, figsize=(6,6))
-    ax.imshow(mask)
-    ax.invert_yaxis()
-    plt.show(fig)
+    plot_mask(mask)
+  return mask
+
+# Generate a mask based on user input.
+def generate_mask(instance2D, polypoints, visualise=False):
+  X,Y = np.array(instance2D.X), np.array(instance2D.Y)
+  Xix, Yix = np.meshgrid( np.arange(instance2D.nx), np.arange(instance2D.ny) )
+  coord = np.vstack([X.flatten(), Y.flatten()])
+  index = np.vstack([Xix.flatten(), Yix.flatten()])
+  
+  mask = np.zeros([instance2D.nx, instance2D.ny])
+  mask_vis = get_mask(instance2D, [3, 4, 5])
+  trunc_coord = coord
+  trunc_index = index
+
+  for i in range(polypoints.shape[0]):
+    point = polypoints[i,:]
+    sqerr = np.sum( (coord-point.reshape([2,1]))**2, axis=0)
+    ix = np.argmin(sqerr)
+    i1, i2 = index[:, ix]
+    mask_vis[i2, i1] = 3    # WEIRD AT FIRST LOOK BUT CORRECT because y-index gives the row, the x-index the column.
+    mask[i2, i1] = 1
+
+    vad = np.array([polypoints[i-1,1]-polypoints[i,1], polypoints[i,0]-polypoints[i-1,0]])  # vad = (a, b) for line equation ax+by+c=0
+    offset = - vad[0] * polypoints[i,0] - vad[1] * polypoints[i,1]
+    crit = np.dot(vad, trunc_coord) + offset
+    crit = crit<=0
+    trunc_coord = trunc_coord[:,crit]
+    trunc_index = trunc_index[:,crit]
+    # print(trunc_coord.shape)
+
+  for i in range(trunc_index.shape[1]):
+    i1, i2 = trunc_index[:,i]
+    if mask_vis[i2, i1] < 3: mask_vis[i2, i1] = 2    # WEIRD AT FIRST LOOK BUT CORRECT because y-index gives the row, the x-index the column.
+    mask[i2, i1] = 1
+
+  if visualise:
+    print("Preview of the mask:")
+    plot_mask(mask_vis)
+    print("Actual mask:")
+    plot_mask(mask)
+
   return mask
 
 def mask_2D_to_1D(instance1D, instance2D, var_list, mask, scale_factor=1, average_method="ice-sheet"):
