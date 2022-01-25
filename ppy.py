@@ -204,12 +204,15 @@ def mask_2D_to_1D(instance1D, instance2D, var_list, mask, scale_factor=1, averag
 
   # Loop over files and variables.
   for file1, file2 in zip(instance1D.list_nc, instance2D.list_nc):
+    with xr.open_dataset(file2) as f:
+      f_ice = f["f_ice"].copy()
+      f_ice = f_ice[:, i1:i2, j1:j2]
     for var_name in var_list:
       with xr.open_dataset(file2) as f:
           var = f[var_name].copy()             # Open the 2D var.
           var = scale_factor*var[:, i1:i2, j1:j2]
           masked_var = np.multiply(var, mask)               # Only keep value at points with int_mask=0.
-          if average_method=="ice-sheet": masked_var1D = masked_var.sum(axis=(1,2))/(masked_var>0).sum(axis=(1,2))
+          if average_method=="ice-sheet": masked_var1D = masked_var.sum(axis=(1,2))/(f_ice>0).sum(axis=(1,2))
           elif average_method=="fixed-zone": masked_var1D = masked_var.mean(axis=(1,2))
           elif average_method==None: masked_var.sum(axis=(1,2))
           instance1D.sim_full[file1]["masked_"+var_name] = masked_var1D # Store spatial mean in 1D data object.
@@ -268,9 +271,10 @@ class postpro_data1D:
             cur_ax.set_ylabel(plot_features["ylabels"][i])
           if plot_features["xlabels"] is not None: 
             cur_ax.set_xlabel(plot_features["xlabels"][i])
-          if plot_features["xticklabels"][i] is not None:
-            cur_ax.set_xticks(plot_features["xticks"][i])
-            cur_ax.set_xticklabels(plot_features["xticklabels"][i])
+          if plot_features["xticklabels"] is not None:
+            if plot_features["xticklabels"][i] is not None:
+              cur_ax.set_xticks(plot_features["xticks"][i])
+              cur_ax.set_xticklabels(plot_features["xticklabels"][i])
           cur_ax.grid(plot_features["grid_bool"])
 
     plt.tight_layout()
@@ -340,7 +344,7 @@ class postpro_data2D:
     obligatory_var = ["H_ice", "uxy_s", "H_ice_pd_err", "uxy_s_pd_err", "f_ice", "mask_bed"]
     load_variables(self, obligatory_var)
 
-    mask_path = "data/ANT-32KM_REGIONS.nc"
+    mask_path = "/media/Data/ice_data/Antarctica/ANT-32KM/ANT-32KM_REGIONS.nc"
     with xr.open_dataset(mask_path) as f:
       self.region_mask = f["mask_regions"].copy()
     f.close()
@@ -395,7 +399,7 @@ class postpro_data2D:
   def extract_grline(self):
     # Get the mask and the space variables from reference observational data.
     
-    path = "data/ANT-32KM_TOPO-BedMachine.nc"
+    path = "/media/Data/ice_data/Antarctica/ANT-32KM/ANT-32KM_TOPO-BedMachine.nc"
     with xr.open_dataset(path) as f:
       self.mask = f["mask"].copy()
       self.X, self.Y = f["x2D"].copy(), f["y2D"].copy()
